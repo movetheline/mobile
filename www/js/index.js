@@ -1,49 +1,75 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
 var app = {
-    // Application Constructor
-    initialize: function() {
-        this.bindEvents();
-    },
-    // Bind Event Listeners
-    //
-    // Bind any events that are required on startup. Common events are:
-    // 'load', 'deviceready', 'offline', and 'online'.
-    bindEvents: function() {
-        document.addEventListener('deviceready', this.onDeviceReady, false);
-    },
-    // deviceready Event Handler
-    //
-    // The scope of 'this' is the event. In order to call the 'receivedEvent'
-    // function, we must explicitly call 'app.receivedEvent(...);'
-    onDeviceReady: function() {
-        app.receivedEvent('deviceready');
-    },
-    // Update DOM on a Received Event
-    receivedEvent: function(id) {
-        var parentElement = document.getElementById(id);
-        var listeningElement = parentElement.querySelector('.listening');
-        var receivedElement = parentElement.querySelector('.received');
 
-        listeningElement.setAttribute('style', 'display:none;');
-        receivedElement.setAttribute('style', 'display:block;');
+    browserWindow: null,
 
-        console.log('Received Event: ' + id);
+    // Production settings
+    DOMAIN_URL: 'https://apps.dashplatform.com/',
+    BROWSER_OPTIONS: 'location=no,toolbar=no',
+
+    // Test settings
+    //DOMAIN_URL: 'http://192.168.0.22/',
+    //BROWSER_OPTIONS: null,
+
+    AUTH_LOGIN_ACTION_URL: 'index.php?action=Auth/login&utm_source=dash_mobile&utm_medium=mobile_app&utm_campaign=mobile_app',
+
+    // These are never used to redirect the browser, only to detect if we're on the respective pages
+    FACEBOOK_LOGIN_URL_FLAG: 'https://m.facebook.com/',
+
+    lastURL: null, // Used for bouncing back after an external link has been accessed
+
+    startApplication: function(){
+        app.openNewDashWindow(app.DOMAIN_URL + 'dash/' + app.AUTH_LOGIN_ACTION_URL);
+    },
+
+    openNewDashWindow: function(url){
+        app.browserWindow = window.open(url, '_blank', app.BROWSER_OPTIONS);
+        app.browserWindow.addEventListener('loadstart', app.onLoadStart, false);
+        app.browserWindow.addEventListener('loadstop', app.onLoadStop, false);
+        app.browserWindow.addEventListener('exit', function(){
+            navigator.app.exitApp();
+        }, false);
+    },
+
+    onLoadStart: function(event){
+
+        // Android only
+        if (navigator.notification.activityStart) {
+            navigator.notification.activityStart("Loading", "Please Wait...");
+        }
+
+        app.browserWindow.executeScript({code: "window.dispatchEvent(new Event('mobileAppOnLoadStart2'));"});
+    },
+
+    onLoadStop: function(event){
+
+        // Android only
+        if (navigator.notification.activityStop) {
+            navigator.notification.activityStop();
+        }
+
+        if(!app.containsString(event.url, app.DOMAIN_URL) && !app.containsString(event.url, app.FACEBOOK_LOGIN_URL_FLAG)){
+            app.openExternalBrowser(event.url);
+            return;
+        }
+        app.lastURL = event.url; // Record the last URL in case we open an external URL and have to backup
+        app.browserWindow.executeScript({code: "window.dispatchEvent(new Event('mobileAppOnLoadStop2'));"});
+    },
+
+    /**
+     * Utility method for checking if a string contains a particular substring
+     * @param haystack
+     * @param needle
+     * @returns {boolean}
+     */
+    containsString: function(haystack, needle){
+        return (haystack.indexOf(needle) !== -1);
+    },
+
+    openExternalBrowser: function(url){
+        window.open(url, '_system');
+        app.openNewDashWindow(app.lastURL); // Reopen inAppBrowser on old URL
     }
+
 };
+
+app.startApplication();
