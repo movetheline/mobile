@@ -18,6 +18,7 @@ set -x
 # Explicitly set background in case image is transparent (see: #3)
 convert="convert -background none"
 $convert "$1" -resize 128x128 "$3/res/icon/icon.png"
+$convert "$1" -resize 170x170 "$3/img/logo.png"
 
 $convert "$1" -resize 512x512 "$3/res/icon/android/icon-google-play-store.png"
 
