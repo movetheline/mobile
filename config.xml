@@ -71,6 +71,7 @@
 
     <feature name="Contacts">
         <param name="ios-package" value="CDVContacts" />
+        <param name="android-package" value="org.apache.cordova.contacts.ContactManager" />
     </feature>
 
     <!-- REQUIRED for hiding status bar on iOS -->
