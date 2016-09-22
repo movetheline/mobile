@@ -3,7 +3,7 @@ var app = {
     browserWindow: null,
 
     // Production settings
-    DOMAIN_URL: 'https://apps.dashplatform.com/',
+    DOMAIN_URL: 'http://www.movetheline.net',
     BROWSER_OPTIONS: 'location=no,toolbar=no',
 
     // Test settings
