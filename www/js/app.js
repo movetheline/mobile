@@ -15,6 +15,8 @@ var app = {
 
     lastURL: null, // Used for bouncing back after an external link has been accessed
 
+    contacts: [],
+
     startApplication: function(){
         app.openNewDashWindow(app.DOMAIN_URL);
     },
